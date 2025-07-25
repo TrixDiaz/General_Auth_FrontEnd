@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/ui/button';
 import { AuthCard } from '../../components/AuthCard';
@@ -13,6 +13,19 @@ export default function SendCode() {
     const location = useLocation();
     const type = location.state?.type || "sign in"; // default fallback
     const navigate = useNavigate();
+
+
+    useEffect(() => {
+        if (!email) {
+            toast.error("Please check your email first");
+            navigate("/login");
+        }
+    }, [ email, navigate ]);
+
+    // Don't render the component if there's no email
+    if (!email) {
+        return null;
+    }
 
     const handleSendCode = async () => {
         setLoading(true);
