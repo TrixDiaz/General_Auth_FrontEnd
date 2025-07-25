@@ -43,7 +43,7 @@ export function AuthForm({
                 )}
             </div>
             <Button type="submit" className="w-full flex items-center justify-center" disabled={loading}>
-                {loading ? <LoadingSpinner /> : submitText}
+                {loading ? <LoadingSpinner className="text-white" /> : submitText}
             </Button>
         </form>
     );

@@ -41,7 +41,7 @@ export function AuthCard({
       {showBackButton && (
         <div className="absolute top-6 right-6">
           <Tooltip>
-            <TooltipTrigger>
+            <TooltipTrigger asChild>
               <Link to={backTo}>
                 <Button variant="ghost" size="icon" className="p-2">
                   <span style={{ fontSize: 24 }}>&larr;</span>
