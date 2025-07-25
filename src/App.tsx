@@ -2,6 +2,7 @@ import { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
+import NewPassword from "./pages/auth/NewPassword.tsx";
 
 const Password = lazy(() => import("./pages/auth/Password.tsx"));
 const Pin = lazy(() => import("./pages/auth/Pin.tsx"));
@@ -27,6 +28,7 @@ function App() {
             <Route path="/pin" element={<Pin />} />
             <Route path="/otp" element={<Otp />} />
             <Route path="/password" element={<Password />} />
+            <Route path="/new-password" element={<NewPassword />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="*" element={<Navigate to="/login" replace />} />

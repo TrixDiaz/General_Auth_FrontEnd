@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { AuthForm } from "../../components/AuthForm";
 import { AuthCard } from "../../components/AuthCard";
 import { useLocation } from "react-router-dom";
 import api from "../../lib/axios";
 import axios from "axios";
 import { useAuthStore } from "../../store/useAuthStore";
+import { useForm } from "react-hook-form";
+import { PasswordInput } from "../../components/ui/PasswordInput";
+import { Button } from "../../components/ui/button";
+import { Label } from "../../components/ui/label";
+import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+
+interface PasswordFormData {
+    password: string;
+}
 
 export default function Password() {
     const { state } = useLocation();
@@ -14,6 +22,12 @@ export default function Password() {
     const navigate = useNavigate();
     const [ loading, setLoading ] = useState(false);
     const setUser = useAuthStore((state) => state.setUser);
+
+    const {
+        register,
+        handleSubmit,
+        formState: { errors }
+    } = useForm<PasswordFormData>();
 
     useEffect(() => {
         if (!email) {
@@ -27,7 +41,7 @@ export default function Password() {
         return null;
     }
 
-    const handleSubmit = async (data: Record<string, string>) => {
+    const handleFormSubmit = async (data: PasswordFormData) => {
         setLoading(true);
         try {
             const response = await api.post('/auth/signin-password', {
@@ -54,19 +68,36 @@ export default function Password() {
             setLoading(false)
         }
     };
+
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
             <AuthCard email={email} showBadge={true} showBackButton backTo="/other-ways">
                 <h2 className="text-2xl font-bold mb-6 text-center">Enter your Password</h2>
-                <AuthForm
-                    onSubmit={handleSubmit}
-                    loading={loading}
-                    submitText="Submit Password"
-                    label="Password"
-                    placeholder="Enter your Password"
-                    type="password"
-                    name="password"
-                />
+                <form className="w-full" onSubmit={handleSubmit(handleFormSubmit)}>
+                    <div className="mb-6">
+                        <Label htmlFor="password" className="mb-2">Password</Label>
+                        <PasswordInput
+                            id="password"
+                            placeholder="Enter your Password"
+                            autoComplete="current-password"
+                            {...register("password", {
+                                required: "Password is required"
+                            })}
+                            aria-invalid={!!errors.password}
+                            disabled={loading}
+                        />
+                        {errors.password && (
+                            <p className="text-destructive text-xs mt-1">{errors.password.message}</p>
+                        )}
+                    </div>
+
+                    <Button type="submit" className="w-full flex items-center justify-center" disabled={loading}>
+                        {loading ? <LoadingSpinner className="text-white" /> : "Submit Password"}
+                    </Button>
+                </form>
+                <p className="text-sm text-muted-foreground mt-4 text-center">
+                    Forgot your password? <Link to="/forgot-password" className="text-primary">Reset it</Link>
+                </p>
             </AuthCard>
         </div>
     );

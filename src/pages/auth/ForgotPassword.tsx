@@ -1,24 +1,43 @@
-// @ts-nocheck
-import React, { useState } from "react";
+import { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import { AuthForm } from "../../components/AuthForm";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import api from "../../lib/axios";
+import axios from "axios";
+import { toast } from "sonner";
+
 
 export default function ForgotPassword() {
   const [ loading, setLoading ] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = async (data: Record<string, string>) => {
+  const handleSubmit = async (data: Record<string, string>) => {
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const response = await api.post('/auth/password-reset-otp', {
+        email: data.email,
+      });
+
+      const result = response.data;
+      console.log(result);
+      toast.success(result.message);
+      navigate("/otp", { state: { type: "verify-otp-password", email: data.email } });
+    } catch (error: unknown) {
+      console.error("Forgot Password Failed", error);
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("An error occurred while sending OTP");
+      }
+    } finally {
       setLoading(false);
-      console.log("Login success", data.email);
-    }, 1000);
+    }
   };
 
   return (
     <AuthLayout title="Forgot Password">
       <AuthForm
-        onSubmit={handleLogin}
+        onSubmit={handleSubmit}
         loading={loading}
         submitText="Next"
       />

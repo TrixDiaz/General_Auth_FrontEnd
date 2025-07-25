@@ -14,25 +14,47 @@ export default function Otp() {
     const navigate = useNavigate();
     const setUser = useAuthStore((state) => state.setUser);
 
+    // Redirect if no email or type is provided
+    if (!email || !type) {
+        navigate("/forgot-password");
+        return null;
+    }
+
     const handleSubmit = async (data: Record<string, string>) => {
         setLoading(true);
         try {
-            const response = await api.post('/auth/verify-otp-signin', {
-                email: email,
-                otp: data.otp,
-            });
-            const result = response.data;
-            console.log(result);
-            toast.success(result.message);
+            let response;
 
-            // Store user data in auth store
-            if (result.user) {
-                setUser(result.user);
+            if (type === "verify-otp-password") {
+                response = await api.post('/auth/password-reset-verify-otp', {
+                    email: email,
+                    otp: data.otp,
+                });
+                const result = response.data;
+                console.log(result);
+                toast.success(result.message);
+
+                // Navigate to password reset page after successful OTP verification
+                navigate("/new-password", { state: { email: email } });
+            } else {
+                // Handle login OTP verification (default behavior)
+                response = await api.post('/auth/verify-otp-signin', {
+                    email: email,
+                    otp: data.otp,
+                });
+                const result = response.data;
+                console.log(result);
+                toast.success(result.message);
+
+                // Store user data in auth store
+                if (result.user) {
+                    setUser(result.user);
+                }
+
+                navigate("/dashboard");
             }
-
-            navigate("/dashboard");
         } catch (error: unknown) {
-            console.error("Login failed", error);
+            console.error("OTP verification failed", error);
             if (axios.isAxiosError(error) && error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {
@@ -43,8 +65,15 @@ export default function Otp() {
         }
     };
 
-    // If type is "sign up", back button goes to /login, else /send-code
-    const backTo = type === "sign up" ? "/register" : "/send-code";
+    // Determine back button destination based on type
+    let backTo;
+    if (type === "verify-otp-password") {
+        backTo = "/forgot-password";
+    } else if (type === "sign up") {
+        backTo = "/register";
+    } else {
+        backTo = "/send-code";
+    }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
