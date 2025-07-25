@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AuthCard } from "../../components/AuthCard";
 import { useLocation } from "react-router-dom";
@@ -40,6 +40,10 @@ export default function Password() {
     if (!email) {
         return null;
     }
+
+    const handleResetPassword = () => {
+        navigate("/forgot-password", { state: { email: email } });
+    };
 
     const handleFormSubmit = async (data: PasswordFormData) => {
         setLoading(true);
@@ -96,7 +100,8 @@ export default function Password() {
                     </Button>
                 </form>
                 <p className="text-sm text-muted-foreground mt-4 text-center">
-                    Forgot your password? <Link to="/forgot-password" className="text-primary">Reset it</Link>
+                    Forgot your password? 
+                    <Button onClick={handleResetPassword} variant="link" className="text-primary">Reset it</Button>
                 </p>
             </AuthCard>
         </div>

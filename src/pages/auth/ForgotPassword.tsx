@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import { AuthForm } from "../../components/AuthForm";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../../lib/axios";
 import axios from "axios";
 import { toast } from "sonner";
@@ -10,6 +10,8 @@ import { toast } from "sonner";
 export default function ForgotPassword() {
   const [ loading, setLoading ] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const email = location.state?.email || "";
 
   const handleSubmit = async (data: Record<string, string>) => {
     setLoading(true);
@@ -40,6 +42,7 @@ export default function ForgotPassword() {
         onSubmit={handleSubmit}
         loading={loading}
         submitText="Next"
+        defaultValue={email} // Pass defaultValue to pre-fill email
       />
       <div className="mt-4 flex justify-between items-center w-full">
         <span className="text-sm text-muted-foreground">

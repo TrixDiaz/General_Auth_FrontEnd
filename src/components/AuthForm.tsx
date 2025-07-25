@@ -12,6 +12,7 @@ export interface AuthFormProps {
     placeholder?: string;
     type?: string;
     name?: string;
+    defaultValue?: string; // Add defaultValue prop
 }
 
 export function AuthForm({
@@ -21,7 +22,8 @@ export function AuthForm({
     label = "Email",
     placeholder = "Email",
     type = "email",
-    name = "email"
+    name = "email",
+    defaultValue // Add defaultValue to destructure
 }: AuthFormProps) {
     const { register, handleSubmit, formState: { errors } } = useForm<Record<string, string>>();
 
@@ -34,6 +36,7 @@ export function AuthForm({
                     type={type}
                     placeholder={placeholder}
                     autoComplete={type}
+                    defaultValue={defaultValue} // Set defaultValue for input
                     {...register(name, { required: `${label} is required` })}
                     aria-invalid={!!errors[ name ]}
                     disabled={loading}
