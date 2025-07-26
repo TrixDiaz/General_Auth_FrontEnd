@@ -1,40 +1,55 @@
-import { useAuthStore } from "../store/useAuthStore";
-import { Button } from "../components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { AppSidebar } from "../components/AppSidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "../components/ui/breadcrumb"
+import { Separator } from "../components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "../components/ui/sidebar"
 
 export default function Dashboard() {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate("/login");
-  };
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="p-8 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
-        <div className="space-y-4">
-          <div>
-            <strong>User ID:</strong> {user?.id}
-          </div>
-          <div>
-            <strong>Email:</strong> {user?.email}
-          </div>
-          <div>
-            <strong>Verified:</strong> {user?.isVerified ? "Yes" : "No"}
-          </div>
-          <div>
-            <strong>Profile Completed:</strong> {user?.hasCompletedProfile ? "Yes" : "No"}
-          </div>
+    <SidebarProvider>
+    <AppSidebar />
+    <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center gap-2">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="#">
+                  Dashboard
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Dashboard</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
         </div>
-        <div className="mt-6">
-          <Button onClick={handleLogout} className="w-full">
-            Logout
-          </Button>
+      </header>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+        <div className="grid auto-rows-min gap-4 md:grid-cols-3">
+          <div className="bg-muted/50 aspect-video rounded-xl" />
+          <div className="bg-muted/50 aspect-video rounded-xl" />
+          <div className="bg-muted/50 aspect-video rounded-xl" />
         </div>
+        <div className="bg-muted/50 min-h-[100vh] flex-1 rounded-xl md:min-h-min" />
       </div>
-    </div>
+    </SidebarInset>
+  </SidebarProvider>
   );
 } 

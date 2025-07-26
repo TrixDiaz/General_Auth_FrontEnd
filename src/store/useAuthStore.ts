@@ -3,6 +3,9 @@ import api from '../lib/axios';
 
 interface User {
   id: string;
+  firstName: string;
+  lastName: string;
+  avatar: string;
   email: string;
   isVerified: boolean;
   hasCompletedProfile?: boolean;
@@ -41,6 +44,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Transform the user data to match our interface
       const user: User = {
         id: userData._id || userData.id,
+        firstName: userData.firstName || "Fast",
+        lastName: userData.lastName || "link",
+        avatar: userData.avatar,
         email: userData.email,
         isVerified: userData.isVerified,
         hasCompletedProfile: userData.hasCompletedProfile,
