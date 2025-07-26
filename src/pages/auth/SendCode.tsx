@@ -48,7 +48,7 @@ export default function SendCode() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-200">
+        <div className="min-h-screen flex items-center justify-center">
             <AuthCard email={email} showBackButton backTo="/">
                 <h1 className="text-3xl font-semibold text-center mb-2">Get a code to {type}</h1>
                 <p className="text-center mb-6">

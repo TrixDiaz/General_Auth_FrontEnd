@@ -25,7 +25,7 @@ export function AuthCard({
 }: AuthCardProps) {
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg px-10 py-8 w-full max-w-md mx-auto flex flex-col items-center relative ${className}`}
+      className={`border rounded-xl shadow-lg px-10 py-8 w-full max-w-md mx-auto flex flex-col items-center relative ${className}`}
     >
       {showLogo && (
         <div className="flex items-center gap-2 mb-4">

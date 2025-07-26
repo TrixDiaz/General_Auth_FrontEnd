@@ -30,7 +30,7 @@ export default function OtherWays() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-200">
+        <div className="min-h-screen flex items-center justify-center">
             <AuthCard email={email} showBackButton backTo="/send-code">
                 <h1 className="text-3xl font-semibold text-center mb-6">Sign in other ways</h1>
                 <div className="flex flex-col gap-4 w-full">

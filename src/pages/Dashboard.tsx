@@ -13,7 +13,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-md">
+      <div className="p-8 rounded-lg shadow-md">
         <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
         <div className="space-y-4">
           <div>

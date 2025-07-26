@@ -21,7 +21,7 @@ function App() {
   return (
     <Router>
       <ErrorBoundary>
-        <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><LoadingSpinner className="text-black" /></div>}>
+        <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><LoadingSpinner /></div>}>
           <Routes>
             {/* Public Routes - Redirect to Dashboard if authenticated */}
             <Route path="/login" element={
