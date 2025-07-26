@@ -3,22 +3,13 @@ import { Button } from "../components/ui/button";
 import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await logout();
-    navigate("/");
+    navigate("/login");
   };
-
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Not Authenticated</h1>
-        <Button onClick={() => navigate("/")}>Go to Login</Button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen">
@@ -26,16 +17,16 @@ export default function Dashboard() {
         <h1 className="text-2xl font-bold mb-6 text-center">Dashboard</h1>
         <div className="space-y-4">
           <div>
-            <strong>User ID:</strong> {user.id}
+            <strong>User ID:</strong> {user?.id}
           </div>
           <div>
-            <strong>Email:</strong> {user.email}
+            <strong>Email:</strong> {user?.email}
           </div>
           <div>
-            <strong>Verified:</strong> {user.isVerified ? "Yes" : "No"}
+            <strong>Verified:</strong> {user?.isVerified ? "Yes" : "No"}
           </div>
           <div>
-            <strong>Authentication Status:</strong> {isAuthenticated ? "Authenticated" : "Not Authenticated"}
+            <strong>Profile Completed:</strong> {user?.hasCompletedProfile ? "Yes" : "No"}
           </div>
         </div>
         <div className="mt-6">

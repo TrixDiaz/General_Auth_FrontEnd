@@ -9,6 +9,7 @@ import { PasswordInput } from "../../components/ui/PasswordInput";
 import { Button } from "../../components/ui/button";
 import { Label } from "../../components/ui/label";
 import { LoadingSpinner } from "../../components/ui/LoadingSpinner";
+import { useAuthStore } from "../../store/useAuthStore";
 
 interface NewPasswordFormData {
     password: string;
@@ -20,6 +21,7 @@ export default function NewPassword() {
     const { email } = state || {};
     const [ loading, setLoading ] = useState(false);
     const navigate = useNavigate();
+    const setUser = useAuthStore((state) => state.setUser);
 
     const {
         register,
@@ -46,6 +48,12 @@ export default function NewPassword() {
             const result = response.data;
             console.log(result);
             toast.success(result.message);
+
+            // Store user data in auth store if provided
+            if (result.user) {
+                setUser(result.user);
+            }
+
             navigate("/dashboard");
         } catch (error: unknown) {
             console.error("New Password Failed", error);

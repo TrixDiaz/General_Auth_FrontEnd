@@ -3,6 +3,7 @@ import AuthLayout from "../../components/AuthLayout";
 import { AuthForm } from "../../components/AuthForm";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/useAuthStore";
+import api from "../../lib/axios";
 import axios from "axios";
 import { toast } from "sonner"
 
@@ -10,16 +11,11 @@ export default function Register() {
   const [ loading, setLoading ] = useState(false);
   const setEmail = useAuthStore((state) => state.setEmail);
   const navigate = useNavigate();
-  const baseUrl = 'http://localhost:5000/api/v1/auth';
 
   const handleRegister = async (data: Record<string, string>) => {
     setLoading(true);
     try {
-      const response = await axios.post(`${baseUrl}/signup`, data, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await api.post('/auth/signup', data);
       const result = response.data;
 
       // Show success message
@@ -28,9 +24,12 @@ export default function Register() {
       setEmail(data.email);
       navigate("/otp", { state: { type: "sign up", email: data.email } });
     } catch (error: unknown) {
-      toast.error("Registration failed", {
-        description: error instanceof Error ? error.message : "Unknown error",
-      });
+      console.error("Registration failed", error);
+      if (axios.isAxiosError(error) && error.response?.data?.message) {
+        toast.error(error.response.data.message);
+      } else {
+        toast.error("An error occurred during registration");
+      }
     } finally {
       setLoading(false);
     }
