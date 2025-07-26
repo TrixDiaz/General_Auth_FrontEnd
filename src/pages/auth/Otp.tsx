@@ -12,7 +12,7 @@ export default function Otp() {
     const location = useLocation();
     const { type, email } = location.state || {};
     const navigate = useNavigate();
-    const setUser = useAuthStore((state) => state.setUser);
+    const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
     // Redirect if no email or type is provided
     if (!email || !type) {
@@ -48,7 +48,7 @@ export default function Otp() {
 
                 // Store user data in auth store
                 if (result.user) {
-                    setUser(result.user);
+                    loginSuccess(result.user);
                 }
 
                 navigate("/dashboard");

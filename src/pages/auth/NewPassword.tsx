@@ -21,7 +21,7 @@ export default function NewPassword() {
     const { email } = state || {};
     const [ loading, setLoading ] = useState(false);
     const navigate = useNavigate();
-    const setUser = useAuthStore((state) => state.setUser);
+    const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
     const {
         register,
@@ -51,7 +51,7 @@ export default function NewPassword() {
 
             // Store user data in auth store if provided
             if (result.user) {
-                setUser(result.user);
+                loginSuccess(result.user);
             }
 
             navigate("/dashboard");

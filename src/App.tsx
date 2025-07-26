@@ -1,9 +1,10 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { PublicRoute } from "./components/PublicRoute";
+import { useAuthStore } from "./store/useAuthStore";
 import NewPassword from "./pages/auth/NewPassword.tsx";
 
 const Password = lazy(() => import("./pages/auth/Password.tsx"));
@@ -16,11 +17,27 @@ const OtherWays = lazy(() => import("./pages/auth/OtherWays.tsx"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 
+// Component to handle initial authentication check
+function AuthInitializer() {
+  const { checkAuth, hasCheckedAuth } = useAuthStore();
+  const hasRun = useRef(false);
+
+  useEffect(() => {
+    // Only check authentication once on app initialization
+    if (!hasCheckedAuth && !hasRun.current) {
+      hasRun.current = true;
+      checkAuth();
+    }
+  }, [checkAuth, hasCheckedAuth]);
+
+  return null;
+}
 
 function App() {
   return (
     <Router>
       <ErrorBoundary>
+        <AuthInitializer />
         <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><LoadingSpinner /></div>}>
           <Routes>
             {/* Public Routes - Redirect to Dashboard if authenticated */}

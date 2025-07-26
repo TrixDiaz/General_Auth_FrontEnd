@@ -21,7 +21,7 @@ export default function Password() {
     const email = state?.email;
     const navigate = useNavigate();
     const [ loading, setLoading ] = useState(false);
-    const setUser = useAuthStore((state) => state.setUser);
+    const loginSuccess = useAuthStore((state) => state.loginSuccess);
 
     const {
         register,
@@ -59,7 +59,7 @@ export default function Password() {
 
             // Store user data in auth store
             if (result.user) {
-                setUser(result.user);
+                loginSuccess(result.user);
             }
         } catch (error: unknown) {
             console.error("Login failed", error);

@@ -5,6 +5,7 @@ import {
   CreditCard,
   LogOut,
 } from "lucide-react"
+import { useState } from "react";
 
 import {
   Avatar,
@@ -28,6 +29,7 @@ import {
 } from "./ui/sidebar"
 import { useAuthStore } from "../store/useAuthStore";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export function NavUser({
   user,
@@ -37,19 +39,46 @@ export function NavUser({
     lastName: string
     email: string
     avatar: string
-  }
+  } | null
 }) {
   const { isMobile } = useSidebar()
   const { logout } = useAuthStore();
   const navigate = useNavigate();
+  const [ isLoggingOut, setIsLoggingOut ] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
-    navigate("/login");
+    if (isLoggingOut) return; // Prevent multiple clicks
+
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      toast.success("Logged out successfully");
+      navigate("/login", { replace: true });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Logout failed. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
+  // Don't render if user is null
+  if (!user) {
+    return null;
+  }
+
+  // Safe access to user properties with fallbacks
+  const firstName = user.firstName || "";
+  const lastName = user.lastName || "";
+  const email = user.email || "";
+  const avatar = user.avatar || "";
+
+  // Generate display name and initials
+  const displayName = `${firstName} ${lastName}`.trim() || "User";
+  const initials = `${firstName.charAt(0) || ""}${lastName.charAt(0) || ""}`.toUpperCase() || "U";
+
   return (
-    
+
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
@@ -59,12 +88,12 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.avatar} alt={user.firstName} />
-                <AvatarFallback className="rounded-lg">{user.firstName.charAt(0)}{user.lastName.charAt(0)}</AvatarFallback>
+                <AvatarImage src={avatar} alt={displayName} />
+                <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.firstName} {user.lastName}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-medium">{displayName}</span>
+                <span className="truncate text-xs">{email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
@@ -78,12 +107,12 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.avatar} alt={user.firstName} />
-                  <AvatarFallback className="rounded-lg">{user.firstName.charAt(0)}{user.lastName.charAt(0)}</AvatarFallback>
+                  <AvatarImage src={avatar} alt={displayName} />
+                  <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.lastName}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-medium">{displayName}</span>
+                  <span className="truncate text-xs">{email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
@@ -103,9 +132,13 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className={isLoggingOut ? "opacity-50 cursor-not-allowed" : ""}
+            >
               <LogOut />
-              Log out
+              {isLoggingOut ? "Logging out..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

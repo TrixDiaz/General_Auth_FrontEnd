@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/useAuthStore';
+import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { LoadingSpinner } from './ui/LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -7,9 +9,18 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, hasCheckedAuth } = useAuthStore();
+  const navigate = useNavigate();
 
-  if (isLoading) {
+  useEffect(() => {
+    // Only redirect if we've checked auth and user is not authenticated
+    if (hasCheckedAuth && !isAuthenticated) {
+      navigate('/login', { replace: true });
+    }
+  }, [hasCheckedAuth, isAuthenticated, navigate]);
+
+  // Show loading spinner only if we're still checking authentication
+  if (isLoading || !hasCheckedAuth) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <LoadingSpinner className="text-black" />
@@ -17,8 +28,9 @@ export const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
     );
   }
 
+  // If not authenticated, don't render children (will redirect)
   if (!isAuthenticated) {
-    return null; // Will redirect to login via useAuth hook
+    return null;
   }
 
   return <>{children}</>;
