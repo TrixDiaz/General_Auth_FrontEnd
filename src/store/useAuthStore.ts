@@ -9,79 +9,82 @@ interface User {
   email: string;
   isVerified: boolean;
   hasCompletedProfile?: boolean;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
 }
 
 interface AuthState {
-  email: string;
-  role: string;
-  firstName: string;
-  lastName: string;
-  avatar: string;
-  isVerified: boolean;
-  hasCompletedProfile?: boolean;
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   hasCheckedAuth: boolean;
-  setEmail: (email: string) => void;
-  clearEmail: () => void;
+  email: string; // For auth flow
   setUser: (user: User) => void;
   setLoading: (loading: boolean) => void;
-  checkAuth: () => Promise<boolean>;
+  setEmail: (email: string) => void;
+  checkAuth: (force?: boolean) => Promise<boolean>;
   loginSuccess: (user: User) => void;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  updateUser: (updates: Partial<User>) => void;
+  clearAuth: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
-  email: '',
-  role: '',
-  firstName: '',
-  lastName: '',
-  avatar: '',
-  isVerified: false,
-  hasCompletedProfile: false,
   user: null,
   isAuthenticated: false,
   isLoading: false,
   hasCheckedAuth: false,
-  setEmail: (email) => set({ email }),
-  clearEmail: () => set({ email: '' }),
+  email: '',
+
   setUser: (user) => set({
     user,
     isAuthenticated: true,
     hasCheckedAuth: true,
-    // Sync individual fields with user data
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    avatar: user.avatar || "",
-    isVerified: user.isVerified || false,
-    hasCompletedProfile: user.hasCompletedProfile || false
   }),
+
   setLoading: (loading) => set({ isLoading: loading }),
+
+  setEmail: (email) => set({ email }),
+
   loginSuccess: (user) => set({
     user,
     isAuthenticated: true,
     isLoading: false,
     hasCheckedAuth: true,
-    // Sync individual fields with user data
-    firstName: user.firstName || "",
-    lastName: user.lastName || "",
-    email: user.email || "",
-    avatar: user.avatar || "",
-    isVerified: user.isVerified || false,
-    hasCompletedProfile: user.hasCompletedProfile || false
+    email: '', // Clear email after successful login
   }),
-  checkAuth: async () => {
+
+  updateUser: (updates) => {
+    const { user } = get();
+    if (user) {
+      set({
+        user: { ...user, ...updates }
+      });
+    }
+  },
+
+  clearAuth: () => set({
+    user: null,
+    isAuthenticated: false,
+    hasCheckedAuth: true,
+    isLoading: false,
+    email: '',
+  }),
+
+  checkAuth: async (force = false) => {
     const { setUser, setLoading, hasCheckedAuth, user, isAuthenticated } = get();
 
-    // If we already have a user and are authenticated, don't check again
-    if (hasCheckedAuth && user && isAuthenticated) {
+    // If we already have a user and are authenticated, and not forcing refresh, don't check again
+    if (!force && hasCheckedAuth && user && isAuthenticated) {
       return true;
     }
 
-    // If we've already checked and found no auth, don't check again
-    if (hasCheckedAuth && !isAuthenticated) {
+    // If we've already checked and found no auth, and not forcing refresh, don't check again
+    if (!force && hasCheckedAuth && !isAuthenticated) {
       return false;
     }
 
@@ -100,10 +103,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         id: userData._id || userData.id,
         firstName: userData.firstName || "",
         lastName: userData.lastName || "",
-        avatar: userData.avatar || "",
+        avatar: userData.avatar || userData.profilePicture || "",
         email: userData.email || "",
         isVerified: userData.isVerified || false,
         hasCompletedProfile: userData.hasCompletedProfile || false,
+        phone: userData.phone || "",
+        address: userData.address || "",
+        city: userData.city || "",
+        state: userData.state || "",
+        zip: userData.zip || "",
       };
 
       setUser(user);
@@ -123,19 +131,47 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: null,
         isAuthenticated: false,
         hasCheckedAuth: true,
-        // Clear individual fields
-        firstName: '',
-        lastName: '',
-        email: '',
-        avatar: '',
-        isVerified: false,
-        hasCompletedProfile: false
       });
       return false;
     } finally {
       setLoading(false);
     }
   },
+
+  refreshUser: async () => {
+    const { setUser, setLoading } = get();
+
+    setLoading(true);
+    try {
+      const response = await api.get('/users/me');
+      const userData = response.data;
+
+      // Transform the user data to match our interface
+      const user: User = {
+        id: userData._id || userData.id,
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
+        avatar: userData.avatar || userData.profilePicture || "",
+        email: userData.email || "",
+        isVerified: userData.isVerified || false,
+        hasCompletedProfile: userData.hasCompletedProfile || false,
+        phone: userData.phone || "",
+        address: userData.address || "",
+        city: userData.city || "",
+        state: userData.state || "",
+        zip: userData.zip || "",
+      };
+
+      setUser(user);
+    } catch (error) {
+      console.error('Failed to refresh user data:', error);
+      // If refresh fails, user might be logged out
+      get().clearAuth();
+    } finally {
+      setLoading(false);
+    }
+  },
+
   logout: async () => {
     try {
       // Call backend logout endpoint to clear cookies
@@ -145,19 +181,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       console.error('Logout error:', error);
     } finally {
       // Clear local state regardless of server response
-      set({
-        user: null,
-        isAuthenticated: false,
-        email: '',
-        hasCheckedAuth: true, // Keep this true to prevent re-checking auth
-        isLoading: false, // Ensure loading is false
-        // Clear individual fields
-        firstName: '',
-        lastName: '',
-        avatar: '',
-        isVerified: false,
-        hasCompletedProfile: false
-      });
+      get().clearAuth();
     }
   },
 }));

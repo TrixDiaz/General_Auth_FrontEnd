@@ -16,6 +16,7 @@ const SendCode = lazy(() => import("./pages/auth/SendCode.tsx"));
 const OtherWays = lazy(() => import("./pages/auth/OtherWays.tsx"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
+const Account = lazy(() => import("./pages/Account.tsx"));
 
 // Component to handle initial authentication check
 function AuthInitializer() {
@@ -91,6 +92,12 @@ function App() {
             <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            } />
+
+            <Route path="/account" element={
+              <ProtectedRoute>
+                <Account />
               </ProtectedRoute>
             } />
             

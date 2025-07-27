@@ -18,16 +18,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar"
-import { useAuthStore } from "../store/useAuthStore"
 import { Link } from "react-router-dom"
 
 const data = {
   navigation: [
     {
       name: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: Home,
-    },
+    }, 
   ],
   navSecondary: [
     {
@@ -44,7 +43,6 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const user = useAuthStore((state) => state.user);
 
   return (
     <Sidebar variant="inset" {...props}>
@@ -70,7 +68,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary projects={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   )

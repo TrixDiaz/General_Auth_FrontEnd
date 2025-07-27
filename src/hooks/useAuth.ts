@@ -1,9 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 
 export const useAuth = () => {
-  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+  const { 
+    isAuthenticated, 
+    isLoading, 
+    hasCheckedAuth,
+    checkAuth, 
+    refreshUser,
+    user 
+  } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -17,5 +24,17 @@ export const useAuth = () => {
     verifyAuth();
   }, [checkAuth, navigate]);
 
-  return { isAuthenticated, isLoading };
+  const refreshUserData = useCallback(async () => {
+    if (isAuthenticated) {
+      await refreshUser();
+    }
+  }, [isAuthenticated, refreshUser]);
+
+  return { 
+    isAuthenticated, 
+    isLoading, 
+    hasCheckedAuth,
+    user,
+    refreshUserData 
+  };
 }; 

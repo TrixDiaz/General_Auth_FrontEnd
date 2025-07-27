@@ -27,21 +27,14 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "./ui/sidebar"
+import { useUser } from "../hooks/useUser";
 import { useAuthStore } from "../store/useAuthStore";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-export function NavUser({
-  user,
-}: {
-  user: {
-    firstName: string
-    lastName: string
-    email: string
-    avatar: string
-  } | null
-}) {
+export function NavUser() {
   const { isMobile } = useSidebar()
+  const { user } = useUser();
   const { logout } = useAuthStore();
   const navigate = useNavigate();
   const [ isLoggingOut, setIsLoggingOut ] = useState(false);
@@ -77,6 +70,9 @@ export function NavUser({
   const displayName = `${firstName} ${lastName}`.trim() || "User";
   const initials = `${firstName.charAt(0) || ""}${lastName.charAt(0) || ""}`.toUpperCase() || "U";
 
+  // Check if avatar URL is valid (not empty and not placeholder)
+  const hasValidAvatar = avatar && avatar !== "" && !avatar.includes("via.placeholder.com");
+
   return (
 
     <SidebarMenu>
@@ -88,7 +84,7 @@ export function NavUser({
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={avatar} alt={displayName} />
+                {hasValidAvatar && <AvatarImage src={avatar} alt={displayName} />}
                 <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -107,7 +103,7 @@ export function NavUser({
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={avatar} alt={displayName} />
+                  {hasValidAvatar && <AvatarImage src={avatar} alt={displayName} />}
                   <AvatarFallback className="rounded-lg">{initials}</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
@@ -118,10 +114,12 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
+              <Link to="/account">
+                <DropdownMenuItem>
+                  <BadgeCheck />
+                  Account
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem>
                 <CreditCard />
                 Billing
