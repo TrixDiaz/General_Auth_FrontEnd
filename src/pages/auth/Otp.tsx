@@ -1,84 +1,85 @@
-import { useState } from "react";
 import { AuthForm } from "../../components/AuthForm";
 import { AuthCard } from "../../components/AuthCard";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "../../lib/axios";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { useAuthStore } from "../../store/useAuthStore";
+import axios from 'axios';
+import api from "../../lib/axios";
+import { useAuth } from "../../hooks/useAuth";
 
 export default function Otp() {
     const [ loading, setLoading ] = useState(false);
-    const location = useLocation();
-    const { type, email } = location.state || {};
+    const { email, setUser, setIsAuthenticated, setEmail } = useAuth();
     const navigate = useNavigate();
-    const loginSuccess = useAuthStore((state) => state.loginSuccess);
+    const location = useLocation();
+    const type = location.state?.type || 'sign in';
 
-    // Redirect if no email or type is provided
-    if (!email || !type) {
-        navigate("/forgot-password");
-        return null;
-    }
+
+    useEffect(() => {
+        if (!email) {
+            navigate("/login");
+        }
+    }, [ email, navigate ]);
 
     const handleSubmit = async (data: Record<string, string>) => {
         setLoading(true);
         try {
-            let response;
-
-            if (type === "verify-otp-password") {
-                response = await api.post('/auth/password-reset-verify-otp', {
+            if (type === "sign up") {
+                const response = await api.post("/auth/verify-otp-signup", {
                     email: email,
                     otp: data.otp,
-                });
-                const result = response.data;
-                console.log(result);
-                toast.success(result.message);
-
-                // Navigate to password reset page after successful OTP verification
-                navigate("/new-password", { state: { email: email } });
-            } else {
-                // Handle login OTP verification (default behavior)
-                response = await api.post('/auth/verify-otp-signin', {
-                    email: email,
-                    otp: data.otp,
-                });
-                const result = response.data;
-                console.log(result);
-                toast.success(result.message);
-
-                // Store user data in auth store
-                if (result.user) {
-                    loginSuccess(result.user);
+                })
+                if (response.status === 200) {
+                    setUser(response.data.user);
+                    setEmail(response.data.user.email);
+                    setIsAuthenticated(true);
+                    navigate("/dashboard");
+                } else {
+                    toast.error(response.data.message);
                 }
-
-                navigate("/dashboard");
+            } else if (type === "password reset") {
+                const response = await api.post("/auth/password-reset-otp", {
+                    email: email,
+                    otp: data.otp,
+                })
+                if (response.status === 200) {
+                    setUser(response.data.user);
+                    setEmail(response.data.user.email);
+                    setIsAuthenticated(true);
+                    navigate("/new-password", { state: { email: email } });
+                } else {
+                    toast.error(response.data.message);
+                }
+            } else {
+                const response = await api.post("/auth/verify-otp-signin", {
+                    email: email,
+                    otp: data.otp,
+                })
+                if (response.status === 200) {
+                    setUser(response.data.user);
+                    setEmail(response.data.user.email);
+                    setIsAuthenticated(true);
+                    navigate("/dashboard");
+                } else {
+                    toast.error(response.data.message);
+                }
             }
         } catch (error: unknown) {
-            console.error("OTP verification failed", error);
+            console.error("OTP failed", error);
             if (axios.isAxiosError(error) && error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {
-                toast.error("An error occurred while verifying OTP");
+                toast.error("An error occurred while submitting OTP");
             }
         } finally {
             setLoading(false);
         }
-    };
-
-    // Determine back button destination based on type
-    let backTo;
-    if (type === "verify-otp-password") {
-        backTo = "/forgot-password";
-    } else if (type === "sign up") {
-        backTo = "/register";
-    } else {
-        backTo = "/send-code";
     }
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen">
-            <AuthCard email={email} showBadge={true} showBackButton backTo={backTo}>
-                <h2 className="text-2xl font-bold mb-6 text-center">Enter OTP</h2>
+            <AuthCard email={email || ""} showBadge={true} showBackButton backTo="/register">
+                <h2 className="text-2xl font-bold mb-6 text-center">Enter OTP to {type}</h2>
                 <AuthForm
                     onSubmit={handleSubmit}
                     loading={loading}

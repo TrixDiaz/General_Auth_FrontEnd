@@ -1,42 +1,39 @@
-import { useState, useEffect } from 'react';
-import { useAuthStore } from '../../store/useAuthStore';
 import { Button } from '../../components/ui/button';
 import { AuthCard } from '../../components/AuthCard';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authStore } from '../../store/authStore';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import api from '../../lib/axios';
 import axios from 'axios';
 
 export default function SendCode() {
     const [ loading, setLoading ] = useState(false);
-    const email = useAuthStore((state) => state.email);
-    const location = useLocation();
-    const type = location.state?.type || "sign in"; // default fallback
+    const { email } = authStore();
     const navigate = useNavigate();
-
+    const location = useLocation();
+    const type = location.state?.type || 'sign-in';
 
     useEffect(() => {
         if (!email) {
-            toast.error("Please check your email first");
-            navigate("/login");
+            navigate('/login');
         }
-    }, [ email, navigate ]);
 
-    // Don't render the component if there's no email
-    if (!email) {
-        return null;
-    }
+    }, [ email, navigate ]);
 
     const handleSendCode = async () => {
         setLoading(true);
         try {
-            const response = await api.post('/auth/signin-otp', { email });
-            const result = response.data;
-            console.log(response);
-            toast(result.message);
-            navigate("/otp", { state: { type: "sign in", email } });
+            const response = await api.post("/auth/signin-otp", {
+                email: email,
+            })
+            if (response.status === 200) {
+                navigate("/otp", { state: { type: "sign in" } });
+            } else {
+                toast.error(response.data.message);
+            }
         } catch (error: unknown) {
-            console.log("Send Code Failed", error);
+            console.error("Send Code failed", error);
             if (axios.isAxiosError(error) && error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {
@@ -45,18 +42,31 @@ export default function SendCode() {
         } finally {
             setLoading(false);
         }
+    };
+
+    if (!email) {
+        toast.error("Email not found, Please sign up first.");
+        navigate("/login");
+        return null;
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center">
-            <AuthCard email={email} showBackButton backTo="/">
+            <AuthCard
+                showBackButton
+                backTo="/login"
+                email={email}
+            >
                 <h1 className="text-3xl font-semibold text-center mb-2">Get a code to {type}</h1>
                 <p className="text-center mb-6">
-                    We'll send a code to <b>{email}</b> to {type} you.
+                    We'll send a code to <span className="font-medium">{email}</span>.
                 </p>
-                <form className='w-full' onSubmit={(e) => { e.preventDefault(); handleSendCode(); }}>
-                    <Button type="submit" className="w-full mb-4" disabled={loading}>
-                        {loading ? 'Sending...' : 'Send Code'}
+                <form className='w-full' onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendCode();
+                }}>
+                    <Button onClick={handleSendCode} disabled={loading} type="submit" className="w-full mb-4" >
+                        Send Code
                     </Button>
                 </form>
                 <Link to="/other-ways" className="w-full">

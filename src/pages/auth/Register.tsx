@@ -1,46 +1,48 @@
-import { useState } from "react";
 import AuthLayout from "../../components/AuthLayout";
 import { AuthForm } from "../../components/AuthForm";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuthStore } from "../../store/useAuthStore";
+import { authStore } from "../../store/authStore";
+import { useState } from "react";
+import axios from 'axios';
+import { toast } from "sonner";
 import api from "../../lib/axios";
-import axios from "axios";
-import { toast } from "sonner"
 
 export default function Register() {
   const [ loading, setLoading ] = useState(false);
-  const setEmail = useAuthStore((state) => state.setEmail);
+  const { email, setEmail } = authStore();
   const navigate = useNavigate();
 
-  const handleRegister = async (data: Record<string, string>) => {
+  const handleSubmit = async (data: Record<string, string>) => {
     setLoading(true);
     try {
-      const response = await api.post('/auth/signup', data);
-      const result = response.data;
-
-      // Show success message
-      toast(result.message + " " + result.email);
-
       setEmail(data.email);
-      navigate("/otp", { state: { type: "sign up", email: data.email } });
+      const response = await api.post("/auth/signup", {
+        email: data.email,
+      })
+      if (response.status === 200) {
+        navigate("/otp", { state: { type: "sign up" } });
+      } else {
+        toast.error(response.data.message);
+      }
     } catch (error: unknown) {
       console.error("Registration failed", error);
       if (axios.isAxiosError(error) && error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error("An error occurred during registration");
+        toast.error("An error occurred while registering");
       }
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
   };
 
   return (
     <AuthLayout title="Create your Account">
       <AuthForm
-        onSubmit={handleRegister}
+        onSubmit={handleSubmit}
         loading={loading}
         submitText="Next"
+        defaultValue={email || ""}
       />
       <div className="mt-4 flex justify-between items-center w-full">
         <span className="text-sm text-muted-foreground">

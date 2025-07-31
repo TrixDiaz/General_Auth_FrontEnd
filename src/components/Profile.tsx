@@ -1,7 +1,4 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import * as z from 'zod'
+
 import { Input } from './ui/input'
 import { Button } from './ui/button'
 import {
@@ -12,32 +9,41 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form'
-import { useUser } from '../hooks/useUser'
+import { useForm } from 'react-hook-form'
+import { useAuth } from '../hooks/useAuth'
+import { useEffect, useState } from 'react'
+import api from '../lib/axios'
+import { isAxiosError } from 'axios'
 import { toast } from 'sonner'
-import axios from 'axios'
-import CustomSkeleton from './ui/CustomSkeleton'
-import { profileSchema } from '../lib/zod'
 
-type ProfileFormData = z.infer<typeof profileSchema>
+interface ProfileFormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+}
 
 export default function Profile() {
-  const { user, isLoading, isUpdating, refreshUserData, updateUserData } = useUser();
-
+  const { user, setUser } = useAuth()
+  const [ loading, setLoading ] = useState(false)
   const form = useForm<ProfileFormData>({
-    resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      address: '',
-      city: '',
-      state: '',
-      zip: '',
-    },
-  });
+      firstName: user?.firstName || '',
+      lastName: user?.lastName || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      address: user?.address || '',
+      city: user?.city || '',
+      state: user?.state || '',
+      zip: user?.zip || '',
+    }
+  })
 
-  // Update form data when user data changes
+  // Update form values when user data changes
   useEffect(() => {
     if (user) {
       form.reset({
@@ -49,43 +55,34 @@ export default function Profile() {
         city: user.city || '',
         state: user.state || '',
         zip: user.zip || '',
-      });
+      })
     }
-  }, [ user, form ]);
+  }, [ user, form ])
 
   const onSubmit = async (data: ProfileFormData) => {
+    setLoading(true);
     try {
-      const updateData = {
-        firstName: data.firstName,
-        lastName: data.lastName,
-        phone: data.phone,
-        address: data.address,
-        city: data.city,
-        state: data.state,
-        zip: data.zip,
-      };
-
-      // Update the user profile using the user store
-      await updateUserData(updateData);
+      const response = await api.patch('/users/me', data);
+      // Update the user state with the new data returned from the server
+      if (response.data && response.data.success) {
+        // The response contains user data directly (excluding success and message)
+        const userData = { ...response.data };
+        delete userData.success;
+        delete userData.message;
+        setUser(userData);
+      }
       toast.success('Profile updated successfully');
-
-      // Optionally refresh user data from server to ensure consistency
-      await refreshUserData();
-    } catch (error) {
-      console.error('Failed to update profile:', error);
-      if (axios.isAxiosError(error) && error.response?.data?.message) {
+    } catch (error: unknown) {
+      console.error("Profile update failed", error);
+      if (isAxiosError(error) && error.response?.data?.message) {
         toast.error(error.response.data.message);
       } else {
-        toast.error('Failed to update profile');
+        toast.error("An error occurred while updating profile");
       }
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (isLoading) {
-    return (
-      <CustomSkeleton />
-    );
-  }
 
   return (
     <div className="flex flex-col lg:flex-row gap-6 w-full p-4">
@@ -217,9 +214,9 @@ export default function Profile() {
               <Button
                 type="submit"
                 className="w-full md:w-auto"
-                disabled={isUpdating}
+                disabled={loading}
               >
-                {isUpdating ? 'Updating...' : 'Update'}
+                {loading ? 'Updating...' : 'Update'}
               </Button>
             </div>
           </form>
