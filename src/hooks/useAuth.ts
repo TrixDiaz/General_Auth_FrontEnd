@@ -10,7 +10,13 @@ export const useAuth = () => {
         setUser,
         setEmail,
         setIsAuthenticated,
-        logout
+        logout,
+        // Refresh token related state and methods
+        showRefreshDialog,
+        setShowRefreshDialog,
+        isRefreshing,
+        setIsRefreshing,
+        refreshTokens
     } = authStore();
 
     return {
@@ -20,7 +26,13 @@ export const useAuth = () => {
         setUser,
         setEmail,
         setIsAuthenticated,
-        logout
+        logout,
+        // Refresh token related state and methods
+        showRefreshDialog,
+        setShowRefreshDialog,
+        isRefreshing,
+        setIsRefreshing,
+        refreshTokens
     }
 }
 

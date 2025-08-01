@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { LoadingSpinner } from "./components/ui/LoadingSpinner";
 import NewPassword from "./pages/auth/NewPassword.tsx";
+import { RefreshTokenDialog } from "./components/RefreshTokenDialog";
+import { useAuth } from "./hooks/useAuth";
 
 const Password = lazy(() => import("./pages/auth/Password.tsx"));
 const Pin = lazy(() => import("./pages/auth/Pin.tsx"));
@@ -20,6 +22,16 @@ import { useAuthInit } from "./hooks/useAuth";
 
 function App() {
   useAuthInit();
+  const { showRefreshDialog, setShowRefreshDialog, isRefreshing, refreshTokens, logout } = useAuth();
+
+  const handleRefresh = async () => {
+    await refreshTokens();
+  };
+
+  const handleLogout = async () => {
+    setShowRefreshDialog(false);
+    await logout();
+  };
 
   return (
     <Router>
@@ -86,6 +98,14 @@ function App() {
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </Suspense>
+
+        {/* Refresh Token Dialog */}
+        <RefreshTokenDialog
+          isOpen={showRefreshDialog}
+          onRefresh={handleRefresh}
+          onLogout={handleLogout}
+          isLoading={isRefreshing}
+        />
       </ErrorBoundary>
     </Router>
   );
